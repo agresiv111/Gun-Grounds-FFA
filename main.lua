@@ -7,149 +7,149 @@ local Camera = workspace.CurrentCamera
 local LocalPlayer = Players.LocalPlayer
 
 local SETTINGS = {
-    ESP = {
-        Enabled = false,
-        BoxColor = Color3.new(1, 0.3, 0.3),
-        DistanceColor = Color3.new(1, 1, 1),
-        HealthGradient = {
-            Color3.new(0, 1, 0),
-            Color3.new(1, 1, 0),
-            Color3.new(1, 0, 0)
-        },
-        SnaplineEnabled = true,
-        SnaplinePosition = "Center",
-        RainbowEnabled = false
-    },
-    Aimbot = {
-        Enabled = false,
-        FOV = 30,
-        MaxDistance = 200,
-        ShowFOV = false,
-        TargetPart = "Head"
-    },
-    Misc = {
-        -- Здесь могут быть другие настройки в будущем
-    }
+	ESP = {
+		Enabled = false,
+		BoxColor = Color3.new(1, 0.3, 0.3),
+		DistanceColor = Color3.new(1, 1, 1),
+		HealthGradient = {
+			Color3.new(0, 1, 0),
+			Color3.new(1, 1, 0),
+			Color3.new(1, 0, 0)
+		},
+		SnaplineEnabled = true,
+		SnaplinePosition = "Center",
+		RainbowEnabled = false
+	},
+	Aimbot = {
+		Enabled = false,
+		FOV = 30,
+		MaxDistance = 200,
+		ShowFOV = false,
+		TargetPart = "Head"
+	},
+	Misc = {
+		-- Здесь могут быть другие настройки в будущем
+	}
 }
 
 local rainbowSpeed = 0.5
 local espCache = {}
 
 local function createESP(player)
-    if player == LocalPlayer then return end
-    local drawings = {
-        Box = Drawing.new("Square"),
-        HealthBar = Drawing.new("Square"),
-        Distance = Drawing.new("Text"),
-        Snapline = Drawing.new("Line")
-    }
-    for _, v in pairs(drawings) do
-        v.Visible = false
-        if v.Type == "Square" then
-            v.Thickness = 2
-            v.Filled = false
-        end
-    end
-    drawings.Box.Color = SETTINGS.ESP.BoxColor
-    drawings.HealthBar.Filled = true
-    drawings.Distance.Size = 16
-    drawings.Distance.Center = true
-    drawings.Distance.Color = SETTINGS.ESP.DistanceColor
-    drawings.Snapline.Color = SETTINGS.ESP.BoxColor
-    espCache[player] = drawings
+	if player == LocalPlayer then return end
+	local drawings = {
+		Box = Drawing.new("Square"),
+		HealthBar = Drawing.new("Square"),
+		Distance = Drawing.new("Text"),
+		Snapline = Drawing.new("Line")
+	}
+	for _, v in pairs(drawings) do
+		v.Visible = false
+		if v.Type == "Square" then
+			v.Thickness = 2
+			v.Filled = false
+		end
+	end
+	drawings.Box.Color = SETTINGS.ESP.BoxColor
+	drawings.HealthBar.Filled = true
+	drawings.Distance.Size = 16
+	drawings.Distance.Center = true
+	drawings.Distance.Color = SETTINGS.ESP.DistanceColor
+	drawings.Snapline.Color = SETTINGS.ESP.BoxColor
+	espCache[player] = drawings
 end
 
 local function updateESP(player, drawings)
-    if not SETTINGS.ESP.Enabled or not player.Character then
-        for _, v in pairs(drawings) do v.Visible = false end
-        return
-    end
-    local humanoid = player.Character:FindFirstChildOfClass("Humanoid")
-    local head = player.Character:FindFirstChild("Head")
-    if not humanoid or humanoid.Health <= 0 or not head then
-        for _, v in pairs(drawings) do v.Visible = false end
-        return
-    end
-    local screenPos, onScreen = Camera:WorldToViewportPoint(head.Position)
-    if not onScreen then
-        for _, v in pairs(drawings) do v.Visible = false end
-        return
-    end
-    local distance = (head.Position - Camera.CFrame.Position).Magnitude
-    local size = 1000 / distance
-    drawings.Box.Size = Vector2.new(size, size * 1.5)
-    drawings.Box.Position = Vector2.new(screenPos.X - size/2, screenPos.Y - size * 0.75)
-    drawings.Box.Visible = true
-    local healthPercent = humanoid.Health / humanoid.MaxHealth
-    local colorIndex = math.clamp(3 - healthPercent * 2, 1, 3)
-    local color = SETTINGS.ESP.HealthGradient[math.floor(colorIndex)]:Lerp(
-        SETTINGS.ESP.HealthGradient[math.ceil(colorIndex)],
-        colorIndex % 1
-    )
-    drawings.HealthBar.Size = Vector2.new(4, size * 1.5 * healthPercent)
-    drawings.HealthBar.Position = Vector2.new(screenPos.X + size/2 + 5, screenPos.Y - size * 0.75 + (size * 1.5 * (1 - healthPercent)))
-    drawings.HealthBar.Color = color
-    drawings.HealthBar.Visible = true
-    drawings.Distance.Text = math.floor(distance) .. "m"
-    drawings.Distance.Position = Vector2.new(screenPos.X, screenPos.Y + size * 0.75 + 10)
-    drawings.Distance.Visible = true
+	if not SETTINGS.ESP.Enabled or not player.Character then
+		for _, v in pairs(drawings) do v.Visible = false end
+		return
+	end
+	local humanoid = player.Character:FindFirstChildOfClass("Humanoid")
+	local head = player.Character:FindFirstChild("Head")
+	if not humanoid or humanoid.Health <= 0 or not head then
+		for _, v in pairs(drawings) do v.Visible = false end
+		return
+	end
+	local screenPos, onScreen = Camera:WorldToViewportPoint(head.Position)
+	if not onScreen then
+		for _, v in pairs(drawings) do v.Visible = false end
+		return
+	end
+	local distance = (head.Position - Camera.CFrame.Position).Magnitude
+	local size = 1000 / distance
+	drawings.Box.Size = Vector2.new(size, size * 1.5)
+	drawings.Box.Position = Vector2.new(screenPos.X - size/2, screenPos.Y - size * 0.75)
+	drawings.Box.Visible = true
+	local healthPercent = humanoid.Health / humanoid.MaxHealth
+	local colorIndex = math.clamp(3 - healthPercent * 2, 1, 3)
+	local color = SETTINGS.ESP.HealthGradient[math.floor(colorIndex)]:Lerp(
+		SETTINGS.ESP.HealthGradient[math.ceil(colorIndex)],
+		colorIndex % 1
+	)
+	drawings.HealthBar.Size = Vector2.new(4, size * 1.5 * healthPercent)
+	drawings.HealthBar.Position = Vector2.new(screenPos.X + size/2 + 5, screenPos.Y - size * 0.75 + (size * 1.5 * (1 - healthPercent)))
+	drawings.HealthBar.Color = color
+	drawings.HealthBar.Visible = true
+	drawings.Distance.Text = math.floor(distance) .. "m"
+	drawings.Distance.Position = Vector2.new(screenPos.X, screenPos.Y + size * 0.75 + 10)
+	drawings.Distance.Visible = true
 
-    if SETTINGS.ESP.RainbowEnabled then
-        local hue = (tick() * rainbowSpeed) % 1
-        drawings.Snapline.Color = Color3.fromHSV(hue, 1, 1)
-        drawings.Box.Color = Color3.fromHSV(hue, 1, 1)
-    else
-        drawings.Snapline.Color = SETTINGS.ESP.BoxColor
-        drawings.Box.Color = SETTINGS.ESP.BoxColor
-    end
+	if SETTINGS.ESP.RainbowEnabled then
+		local hue = (tick() * rainbowSpeed) % 1
+		drawings.Snapline.Color = Color3.fromHSV(hue, 1, 1)
+		drawings.Box.Color = Color3.fromHSV(hue, 1, 1)
+	else
+		drawings.Snapline.Color = SETTINGS.ESP.BoxColor
+		drawings.Box.Color = SETTINGS.ESP.BoxColor
+	end
 
-    if SETTINGS.ESP.SnaplineEnabled then
-        drawings.Snapline.From = Vector2.new(screenPos.X, screenPos.Y + size * 0.75)
-        local snaplineY
-        if SETTINGS.ESP.SnaplinePosition == "Bottom" then
-            snaplineY = Camera.ViewportSize.Y
-        elseif SETTINGS.ESP.SnaplinePosition == "Top" then
-            snaplineY = 0
-        else
-            snaplineY = Camera.ViewportSize.Y / 2
-        end
-        drawings.Snapline.To = Vector2.new(Camera.ViewportSize.X / 2, snaplineY)
-        drawings.Snapline.Visible = true
-    else
-        drawings.Snapline.Visible = false
-    end
+	if SETTINGS.ESP.SnaplineEnabled then
+		drawings.Snapline.From = Vector2.new(screenPos.X, screenPos.Y + size * 0.75)
+		local snaplineY
+		if SETTINGS.ESP.SnaplinePosition == "Bottom" then
+			snaplineY = Camera.ViewportSize.Y
+		elseif SETTINGS.ESP.SnaplinePosition == "Top" then
+			snaplineY = 0
+		else
+			snaplineY = Camera.ViewportSize.Y / 2
+		end
+		drawings.Snapline.To = Vector2.new(Camera.ViewportSize.X / 2, snaplineY)
+		drawings.Snapline.Visible = true
+	else
+		drawings.Snapline.Visible = false
+	end
 end
 
 -- Aimbot function to find the closest player
 local function getClosestPlayer()
-    local closestPlayer = nil
-    local minDist = math.huge
-    local fov = SETTINGS.Aimbot.FOV or 70
+	local closestPlayer = nil
+	local minDist = math.huge
+	local fov = SETTINGS.Aimbot.FOV or 70
 
-    for _, player in pairs(Players:GetPlayers()) do
-        if player ~= Players.LocalPlayer and player.Character and player.Character:FindFirstChild("Head") then
-            local head = player.Character.Head
-            local vectorToPlayer = (head.Position - workspace.CurrentCamera.CFrame.Position).Unit
-            local cameraDirection = workspace.CurrentCamera.CFrame.LookVector
-            local angle = math.deg(math.acos(vectorToPlayer:Dot(cameraDirection)))
+	for _, player in pairs(Players:GetPlayers()) do
+		if player ~= Players.LocalPlayer and player.Character and player.Character:FindFirstChild("Head") then
+			local head = player.Character.Head
+			local vectorToPlayer = (head.Position - workspace.CurrentCamera.CFrame.Position).Unit
+			local cameraDirection = workspace.CurrentCamera.CFrame.LookVector
+			local angle = math.deg(math.acos(vectorToPlayer:Dot(cameraDirection)))
 
-            if angle <= fov / 2 then
-                local distance = (workspace.CurrentCamera.CFrame.Position - head.Position).Magnitude
-                if distance <= SETTINGS.Aimbot.MaxDistance then
-                    local ray = Ray.new(workspace.CurrentCamera.CFrame.Position, vectorToPlayer * 500)
-                    local hit, pos = workspace:FindPartOnRay(ray, Players.LocalPlayer.Character)
+			if angle <= fov / 2 then
+				local distance = (workspace.CurrentCamera.CFrame.Position - head.Position).Magnitude
+				if distance <= SETTINGS.Aimbot.MaxDistance then
+					local ray = Ray.new(workspace.CurrentCamera.CFrame.Position, vectorToPlayer * 500)
+					local hit, pos = workspace:FindPartOnRay(ray, Players.LocalPlayer.Character)
 
-                    if hit and hit:IsDescendantOf(player.Character) then
-                        if distance < minDist then
-                            minDist = distance
-                            closestPlayer = player
-                        end
-                    end
-                end
-            end
-        end
-    end
-    return closestPlayer
+					if hit and hit:IsDescendantOf(player.Character) then
+						if distance < minDist then
+							minDist = distance
+							closestPlayer = player
+						end
+					end
+				end
+			end
+		end
+	end
+	return closestPlayer
 end
 
 local fovCircle = Drawing.new("Circle")
@@ -167,7 +167,7 @@ screenGui.DisplayOrder = 1000
 
 local frame = Instance.new("Frame")
 frame.Name = "MainFrame"
-frame.Size = UDim2.new(0, 600, 0, 300) -- Увеличим ширину для вкладок
+frame.Size = UDim2.new(0, 370, 0, 300) -- Ширина уменьшена до 370 пикселей
 frame.Position = UDim2.new(0, 10, 0, 10)
 frame.BackgroundColor3 = Color3.new(0.05, 0.05, 0.05)
 frame.BorderSizePixel = 0
@@ -182,8 +182,8 @@ frameCorner.Parent = frame
 
 local gradient = Instance.new("UIGradient")
 gradient.Color = ColorSequence.new({
-    ColorSequenceKeypoint.new(0, Color3.new(0.1, 0.1, 0.1)),
-    ColorSequenceKeypoint.new(1, Color3.new(0.3, 0.3, 0.3))
+	ColorSequenceKeypoint.new(0, Color3.new(0.1, 0.1, 0.1)),
+	ColorSequenceKeypoint.new(1, Color3.new(0.3, 0.3, 0.3))
 })
 gradient.Rotation = 90
 gradient.Parent = frame
@@ -566,15 +566,15 @@ distanceTextBoxCorner.CornerRadius = UDim.new(0, 5)
 distanceTextBoxCorner.Parent = distanceTextBox
 
 local function styleButton(button)
-    local originalSize = button.Size
-    button.MouseEnter:Connect(function()
-        TweenService:Create(button, TweenInfo.new(0.2), {Size = originalSize + UDim2.new(0, 5, 0, 5)}):Play()
-        button.BackgroundColor3 = Color3.new(0.25, 0.25, 0.25)
-    end)
-    button.MouseLeave:Connect(function()
-        TweenService:Create(button, TweenInfo.new(0.2), {Size = originalSize}):Play()
-        button.BackgroundColor3 = Color3.new(0.15, 0.15, 0.15)
-    end)
+	local originalSize = button.Size
+	button.MouseEnter:Connect(function()
+		TweenService:Create(button, TweenInfo.new(0.2), {Size = originalSize + UDim2.new(0, 5, 0, 5)}):Play()
+		button.BackgroundColor3 = Color3.new(0.25, 0.25, 0.25)
+	end)
+	button.MouseLeave:Connect(function()
+		TweenService:Create(button, TweenInfo.new(0.2), {Size = originalSize}):Play()
+		button.BackgroundColor3 = Color3.new(0.15, 0.15, 0.15)
+	end)
 end
 
 styleButton(espTabButton)
@@ -584,264 +584,264 @@ styleButton(minimizeButton)
 
 local minimized = false
 local originalSize = frame.Size
-local minimizedSize = UDim2.new(0, 400, 0, 30)
+local minimizedSize = UDim2.new(0, 370, 0, 30) -- Обновлено значение ширины
 
 minimizeButton.MouseButton1Click:Connect(function()
-    minimized = not minimized
-    if minimized then
-        tabsFrame.Visible = false
-        espTabContent.Visible = false
-        aimbotTabContent.Visible = false
-        miscTabContent.Visible = false
-        local tween = TweenService:Create(frame, TweenInfo.new(0.3), {Size = minimizedSize})
-        tween:Play()
-        minimizeButton.Text = "+"
-    else
-        local tween = TweenService:Create(frame, TweenInfo.new(0.3), {Size = originalSize})
-        tween:Play()
-        tween.Completed:Connect(function()
-            tabsFrame.Visible = true
-            currentTab = currentTab or "ESP" -- Показываем первую вкладку после разворачивания
-            if currentTab == "ESP" then
-                espTabContent.Visible = true
-                aimbotTabContent.Visible = false
-                miscTabContent.Visible = false
-            elseif currentTab == "Aimbot" then
-                espTabContent.Visible = false
-                aimbotTabContent.Visible = true
-                miscTabContent.Visible = false
-            elseif currentTab == "Misc" then
-                espTabContent.Visible = false
-                aimbotTabContent.Visible = false
-                miscTabContent.Visible = true
-            end
-        end)
-        minimizeButton.Text = "-"
-    end
+	minimized = not minimized
+	if minimized then
+		tabsFrame.Visible = false
+		espTabContent.Visible = false
+		aimbotTabContent.Visible = false
+		miscTabContent.Visible = false
+		local tween = TweenService:Create(frame, TweenInfo.new(0.3), {Size = minimizedSize})
+		tween:Play()
+		minimizeButton.Text = "+"
+	else
+		local tween = TweenService:Create(frame, TweenInfo.new(0.3), {Size = originalSize})
+		tween:Play()
+		tween.Completed:Connect(function()
+			tabsFrame.Visible = true
+			currentTab = currentTab or "ESP" -- Показываем первую вкладку после разворачивания
+			if currentTab == "ESP" then
+				espTabContent.Visible = true
+				aimbotTabContent.Visible = false
+				miscTabContent.Visible = false
+			elseif currentTab == "Aimbot" then
+				espTabContent.Visible = false
+				aimbotTabContent.Visible = true
+				miscTabContent.Visible = false
+			elseif currentTab == "Misc" then
+				espTabContent.Visible = false
+				aimbotTabContent.Visible = false
+				miscTabContent.Visible = true
+			end
+		end)
+		minimizeButton.Text = "-"
+	end
 end)
 
 local function animateIndicatorColor(indicator, enabled)
-    local targetColor = enabled and Color3.new(0, 1, 0) or Color3.new(1, 0, 0)
-    TweenService:Create(indicator, TweenInfo.new(0.2), {BackgroundColor3 = targetColor}):Play()
+	local targetColor = enabled and Color3.new(0, 1, 0) or Color3.new(1, 0, 0)
+	TweenService:Create(indicator, TweenInfo.new(0.2), {BackgroundColor3 = targetColor}):Play()
 end
 
 -- Логика переключения вкладок
 local currentTab = "ESP"
 
 local function switchTab(tabName)
-    currentTab = tabName
-    espTabContent.Visible = (tabName == "ESP")
-    aimbotTabContent.Visible = (tabName == "Aimbot")
-    miscTabContent.Visible = (tabName == "Misc")
+	currentTab = tabName
+	espTabContent.Visible = (tabName == "ESP")
+	aimbotTabContent.Visible = (tabName == "Aimbot")
+	miscTabContent.Visible = (tabName == "Misc")
 
-    -- Обновление стиля кнопок вкладок (выделение активной)
-    local tabs = {espTabButton, aimbotTabButton, miscTabButton}
-    for _, tabButton in ipairs(tabs) do
-        if tabButton.Name == tabName .. "TabButton" then
-            tabButton.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
-        else
-            tabButton.BackgroundColor3 = Color3.new(0.15, 0.15, 0.15)
-        end
-    end
+	-- Обновление стиля кнопок вкладок (выделение активной)
+	local tabs = {espTabButton, aimbotTabButton, miscTabButton}
+	for _, tabButton in ipairs(tabs) do
+		if tabButton.Name == tabName .. "TabButton" then
+			tabButton.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
+		else
+			tabButton.BackgroundColor3 = Color3.new(0.15, 0.15, 0.15)
+		end
+	end
 end
 
 espTabButton.MouseButton1Click:Connect(function()
-    switchTab("ESP")
+	switchTab("ESP")
 end)
 
 aimbotTabButton.MouseButton1Click:Connect(function()
-    switchTab("Aimbot")
+	switchTab("Aimbot")
 end)
 
 miscTabButton.MouseButton1Click:Connect(function()
-    switchTab("Misc")
+	switchTab("Misc")
 end)
 
 -- Изначально показываем вкладку ESP
 switchTab("ESP")
 
 espButton.MouseButton1Click:Connect(function()
-    SETTINGS.ESP.Enabled = not SETTINGS.ESP.Enabled
-    animateIndicatorColor(espIndicator, SETTINGS.ESP.Enabled)
+	SETTINGS.ESP.Enabled = not SETTINGS.ESP.Enabled
+	animateIndicatorColor(espIndicator, SETTINGS.ESP.Enabled)
 end)
 
 aimbotButton.MouseButton1Click:Connect(function()
-    SETTINGS.Aimbot.Enabled = not SETTINGS.Aimbot.Enabled
-    animateIndicatorColor(aimbotIndicator, SETTINGS.Aimbot.Enabled)
+	SETTINGS.Aimbot.Enabled = not SETTINGS.Aimbot.Enabled
+	animateIndicatorColor(aimbotIndicator, SETTINGS.Aimbot.Enabled)
 end)
 
 fovToggleButton.MouseButton1Click:Connect(function()
-    SETTINGS.Aimbot.ShowFOV = not SETTINGS.Aimbot.ShowFOV
-    fovCircle.Visible = SETTINGS.Aimbot.ShowFOV
-    animateIndicatorColor(fovToggleIndicator, SETTINGS.Aimbot.ShowFOV)
+	SETTINGS.Aimbot.ShowFOV = not SETTINGS.Aimbot.ShowFOV
+	fovCircle.Visible = SETTINGS.Aimbot.ShowFOV
+	animateIndicatorColor(fovToggleIndicator, SETTINGS.Aimbot.ShowFOV)
 end)
 
 snaplineToggleButton.MouseButton1Click:Connect(function()
-    SETTINGS.ESP.SnaplineEnabled = not SETTINGS.ESP.SnaplineEnabled
-    animateIndicatorColor(snaplineToggleIndicator, SETTINGS.ESP.SnaplineEnabled)
+	SETTINGS.ESP.SnaplineEnabled = not SETTINGS.ESP.SnaplineEnabled
+	animateIndicatorColor(snaplineToggleIndicator, SETTINGS.ESP.SnaplineEnabled)
 end)
 
 fovTextBox.FocusLost:Connect(function(enterPressed)
-    if enterPressed then
-        local newFOV = tonumber(fovTextBox.Text)
-        if newFOV and newFOV >= 30 and newFOV <= 100 then
-            SETTINGS.Aimbot.FOV = newFOV
-        else
-            fovTextBox.Text = tostring(SETTINGS.Aimbot.FOV)
-        end
-    end
+	if enterPressed then
+		local newFOV = tonumber(fovTextBox.Text)
+		if newFOV and newFOV >= 30 and newFOV <= 100 then
+			SETTINGS.Aimbot.FOV = newFOV
+		else
+			fovTextBox.Text = tostring(SETTINGS.Aimbot.FOV)
+		end
+	end
 end)
 
 distanceTextBox.FocusLost:Connect(function(enterPressed)
-    if enterPressed then
-        local newDistance = tonumber(distanceTextBox.Text)
-        if newDistance and newDistance > 0 and newDistance <= 1000 then
-            SETTINGS.Aimbot.MaxDistance = newDistance
-        else
-            distanceTextBox.Text = tostring(SETTINGS.Aimbot.MaxDistance)
-        end
-    end
+	if enterPressed then
+		local newDistance = tonumber(distanceTextBox.Text)
+		if newDistance and newDistance > 0 and newDistance <= 1000 then
+			SETTINGS.Aimbot.MaxDistance = newDistance
+		else
+			distanceTextBox.Text = tostring(SETTINGS.Aimbot.MaxDistance)
+		end
+	end
 end)
 
 local snaplinePositions = {"Center", "Bottom", "Top"}
 local currentSnaplinePositionIndex = 1
 
 snaplinePositionDropdown.MouseButton1Click:Connect(function()
-    currentSnaplinePositionIndex = currentSnaplinePositionIndex + 1
-    if currentSnaplinePositionIndex > #snaplinePositions then
-        currentSnaplinePositionIndex = 1
-    end
-    SETTINGS.ESP.SnaplinePosition = snaplinePositions[currentSnaplinePositionIndex]
-    snaplinePositionDropdown.Text = SETTINGS.ESP.SnaplinePosition
+	currentSnaplinePositionIndex = currentSnaplinePositionIndex + 1
+	if currentSnaplinePositionIndex > #snaplinePositions then
+		currentSnaplinePositionIndex = 1
+	end
+	SETTINGS.ESP.SnaplinePosition = snaplinePositions[currentSnaplinePositionIndex]
+	snaplinePositionDropdown.Text = SETTINGS.ESP.SnaplinePosition
 end)
 
 rainbowButton.MouseButton1Click:Connect(function()
-    SETTINGS.ESP.RainbowEnabled = not SETTINGS.ESP.RainbowEnabled
-    animateIndicatorColor(rainbowIndicator, SETTINGS.ESP.RainbowEnabled)
+	SETTINGS.ESP.RainbowEnabled = not SETTINGS.ESP.RainbowEnabled
+	animateIndicatorColor(rainbowIndicator, SETTINGS.ESP.RainbowEnabled)
 end)
 
 local guiVisible = true
 UserInputService.InputBegan:Connect(function(input)
-    if input.KeyCode == Enum.KeyCode.RightShift then
-        guiVisible = not guiVisible
-        frame.Visible = guiVisible
-    end
+	if input.KeyCode == Enum.KeyCode.RightShift then
+		guiVisible = not guiVisible
+		frame.Visible = guiVisible
+	end
 end)
 
 local function showWelcomeNotification()
-    local notification = Instance.new("ScreenGui")
-    notification.Name = "WelcomeNotification"
-    notification.Parent = CoreGui
+	local notification = Instance.new("ScreenGui")
+	notification.Name = "WelcomeNotification"
+	notification.Parent = CoreGui
 
-    local nFrame = Instance.new("Frame")
-    nFrame.Size = UDim2.new(0, 300, 0, 60)
-    nFrame.Position = UDim2.new(0.5, -150, 1, 100)
-    nFrame.BackgroundColor3 = Color3.new(0, 0, 0)
-    nFrame.BackgroundTransparency = 0.2
-    nFrame.BorderSizePixel = 0
-    nFrame.Parent = notification
+	local nFrame = Instance.new("Frame")
+	nFrame.Size = UDim2.new(0, 300, 0, 60)
+	nFrame.Position = UDim2.new(0.5, -150, 1, 100)
+	nFrame.BackgroundColor3 = Color3.new(0, 0, 0)
+	nFrame.BackgroundTransparency = 0.2
+	nFrame.BorderSizePixel = 0
+	nFrame.Parent = notification
 
-    local nCorner = Instance.new("UICorner")
-    nCorner.CornerRadius = UDim.new(0, 15)
-    nCorner.Parent = nFrame
+	local nCorner = Instance.new("UICorner")
+	nCorner.CornerRadius = UDim.new(0, 15)
+	nCorner.Parent = nFrame
 
-    local gradient = Instance.new("UIGradient")
-    gradient.Color = ColorSequence.new({
-        ColorSequenceKeypoint.new(0, Color3.new(0.1, 0.5, 1)),
-        ColorSequenceKeypoint.new(1, Color3.new(0.8, 0.2, 1))
-    })
-    gradient.Rotation = 45
-    gradient.Parent = nFrame
+	local gradient = Instance.new("UIGradient")
+	gradient.Color = ColorSequence.new({
+		ColorSequenceKeypoint.new(0, Color3.new(0.1, 0.5, 1)),
+		ColorSequenceKeypoint.new(1, Color3.new(0.8, 0.2, 1))
+	})
+	gradient.Rotation = 45
+	gradient.Parent = nFrame
 
-    local shadow = Instance.new("ImageLabel")
-    shadow.Size = UDim2.new(1, 10, 1, 10)
-    shadow.Position = UDim2.new(0, -5, 0, -5)
-    shadow.BackgroundTransparency = 1
-    shadow.Image = "rbxassetid://131604521"
-    shadow.ImageColor3 = Color3.new(0, 0, 0)
-    shadow.ImageTransparency = 0.5
-    shadow.ZIndex = 99
-    shadow.Parent = nFrame
+	local shadow = Instance.new("ImageLabel")
+	shadow.Size = UDim2.new(1, 10, 1, 10)
+	shadow.Position = UDim2.new(0, -5, 0, -5)
+	shadow.BackgroundTransparency = 1
+	shadow.Image = "rbxassetid://131604521"
+	shadow.ImageColor3 = Color3.new(0, 0, 0)
+	shadow.ImageTransparency = 0.5
+	shadow.ZIndex = 99
+	shadow.Parent = nFrame
 
-    local text = Instance.new("TextLabel")
-    text.Size = UDim2.new(1, 0, 1, 0)
-    text.BackgroundTransparency = 1
-    text.TextColor3 = Color3.new(1, 1, 1)
-    text.Text = "Welcome!"
-    text.TextSize = 24
-    text.Font = Enum.Font.GothamBold
-    text.TextStrokeTransparency = 0.7
-    text.TextStrokeColor3 = Color3.new(0, 0, 0)
-    text.Parent = nFrame
+	local text = Instance.new("TextLabel")
+	text.Size = UDim2.new(1, 0, 1, 0)
+	text.BackgroundTransparency = 1
+	text.TextColor3 = Color3.new(1, 1, 1)
+	text.Text = "Welcome!"
+	text.TextSize = 24
+	text.Font = Enum.Font.GothamBold
+	text.TextStrokeTransparency = 0.7
+	text.TextStrokeColor3 = Color3.new(0, 0, 0)
+	text.Parent = nFrame
 
-    local tweenIn = TweenService:Create(nFrame, TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = UDim2.new(0.5, -150, 1, -70)})
-    tweenIn:Play()
-    tweenIn.Completed:Wait()
-    wait(2)
-    local tweenOut = TweenService:Create(nFrame, TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {Position = UDim2.new(0.5, -150, 1, 100)})
-    tweenOut:Play()
-    tweenOut.Completed:Wait()
-    notification:Destroy()
+	local tweenIn = TweenService:Create(nFrame, TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = UDim2.new(0.5, -150, 1, -70)})
+	tweenIn:Play()
+	tweenIn.Completed:Wait()
+	wait(2)
+	local tweenOut = TweenService:Create(nFrame, TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {Position = UDim2.new(0.5, -150, 1, 100)})
+	tweenOut:Play()
+	tweenOut.Completed:Wait()
+	notification:Destroy()
 end
 
 RunService.RenderStepped:Connect(function()
-    fovCircle.Radius = (SETTINGS.Aimbot.FOV / 2) * (Camera.ViewportSize.Y / 90)
-    fovCircle.Position = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2)
-    fovCircle.Visible = SETTINGS.Aimbot.ShowFOV
-    if SETTINGS.ESP.RainbowEnabled and SETTINGS.Aimbot.ShowFOV then
-        local hue = (tick() * rainbowSpeed) % 1
-        fovCircle.Color = Color3.fromHSV(hue, 1, 1)
-    elseif SETTINGS.Aimbot.ShowFOV then
-        fovCircle.Color = Color3.new(1, 1, 1)
-    end
+	fovCircle.Radius = (SETTINGS.Aimbot.FOV / 2) * (Camera.ViewportSize.Y / 90)
+	fovCircle.Position = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2)
+	fovCircle.Visible = SETTINGS.Aimbot.ShowFOV
+	if SETTINGS.ESP.RainbowEnabled and SETTINGS.Aimbot.ShowFOV then
+		local hue = (tick() * rainbowSpeed) % 1
+		fovCircle.Color = Color3.fromHSV(hue, 1, 1)
+	elseif SETTINGS.Aimbot.ShowFOV then
+		fovCircle.Color = Color3.new(1, 1, 1)
+	end
 
-    for player, drawings in pairs(espCache) do
-        updateESP(player, drawings)
-    end
+	for player, drawings in pairs(espCache) do
+		updateESP(player, drawings)
+	end
 
-    if SETTINGS.Aimbot.Enabled then
-        local target = getClosestPlayer()
-        if target and target.Character and target.Character:FindFirstChild("Head") then
-            Camera.CFrame = CFrame.new(Camera.CFrame.Position, target.Character.Head.Position)
-        end
-    end
+	if SETTINGS.Aimbot.Enabled then
+		local target = getClosestPlayer()
+		if target and target.Character and target.Character:FindFirstChild("Head") then
+			Camera.CFrame = CFrame.new(Camera.CFrame.Position, target.Character.Head.Position)
+		end
+	end
 end)
 
 -- Initialize ESP for existing players
 for _, player in ipairs(Players:GetPlayers()) do
-    if player ~= LocalPlayer then
-        createESP(player)
-    end
+	if player ~= LocalPlayer then
+		createESP(player)
+	end
 end
 
 Players.PlayerAdded:Connect(function(player)
-    createESP(player)
-    player.CharacterAdded:Connect(function()
-        if espCache[player] then
-            for _, drawing in pairs(espCache[player]) do
-                pcall(function() drawing:Remove() end)
-            end
-            espCache[player] = nil
-        end
-        createESP(player)
-    end)
-    player.CharacterRemoving:Connect(function()
-        if espCache[player] then
-            for _, drawing in pairs(espCache[player]) do
-                pcall(function() drawing:Remove() end)
-            end
-            espCache[player] = nil
-        end
-    end)
+	createESP(player)
+	player.CharacterAdded:Connect(function()
+		if espCache[player] then
+			for _, drawing in pairs(espCache[player]) do
+				pcall(function() drawing:Remove() end)
+			end
+			espCache[player] = nil
+		end
+		createESP(player)
+	end)
+	player.CharacterRemoving:Connect(function()
+		if espCache[player] then
+			for _, drawing in pairs(espCache[player]) do
+				pcall(function() drawing:Remove() end)
+			end
+			espCache[player] = nil
+		end
+	end)
 end)
 
 Players.PlayerRemoving:Connect(function(player)
-    if espCache[player] then
-        for _, drawing in pairs(espCache[player]) do
-            pcall(function() drawing:Remove() end)
-        end
-        espCache[player] = nil
-    end
+	if espCache[player] then
+		for _, drawing in pairs(espCache[player]) do
+			pcall(function() drawing:Remove() end)
+		end
+		espCache[player] = nil
+	end
 end)
 
 showWelcomeNotification()
